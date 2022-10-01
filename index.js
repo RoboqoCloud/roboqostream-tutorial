@@ -1,4 +1,4 @@
-const grpc = require("grpc");
+const grpc = require("@grpc/grpc-js");
 const protoLoader = require("@grpc/proto-loader");
 const axios = require("axios");
 const dotenv = require("dotenv");
@@ -6,14 +6,14 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const {
-  ROBOQO_OAUTH_URL,
-  ROBOQO_CLIENT_ID,
-  ROBOQO_CLIENT_SECRET,
-  ROBOQO_AUDIENCE,
-  STREAMAPI_ENDPOINT,
+  OCTAVE_OAUTH_URL,
+  OCTAVE_CLIENT_ID,
+  OCTAVE_CLIENT_SECRET,
+  OCTAVE_AUDIENCE,
+  OCTAVE_STREAM_ENDPOINT,
 } = process.env;
 
-const PROTO_PATH = __dirname + "/proto/roboqostream.proto";
+const PROTO_PATH = __dirname + "/proto/octavestream.proto";
 
 let packageDefinition = protoLoader.loadSync(PROTO_PATH, {
   keepCase: true,
@@ -23,15 +23,15 @@ let packageDefinition = protoLoader.loadSync(PROTO_PATH, {
   oneofs: true,
 });
 
-const roboqostream = grpc.loadPackageDefinition(packageDefinition).roboqostream;
+const { octavestream } = grpc.loadPackageDefinition(packageDefinition);
 
 async function getAccessToken() {
   const {
     data: { access_token },
-  } = await axios.post(ROBOQO_OAUTH_URL, {
-    client_id: ROBOQO_CLIENT_ID,
-    client_secret: ROBOQO_CLIENT_SECRET,
-    audience: ROBOQO_AUDIENCE,
+  } = await axios.post(OCTAVE_OAUTH_URL, {
+    client_id: OCTAVE_CLIENT_ID,
+    client_secret: OCTAVE_CLIENT_SECRET,
+    audience: OCTAVE_AUDIENCE,
     grant_type: "client_credentials",
   });
 
@@ -41,8 +41,8 @@ async function getAccessToken() {
 async function main() {
   const access_token = await getAccessToken();
 
-  const client = new roboqostream.RoboqoStream(
-    STREAMAPI_ENDPOINT,
+  const client = new octavestream.OctaveStream(
+    OCTAVE_STREAM_ENDPOINT,
     grpc.credentials.createInsecure(),
     {
       "grpc.max_receive_message_length": 1024 * 1024 * 100,
